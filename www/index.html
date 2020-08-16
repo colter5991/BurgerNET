@@ -1,0 +1,299 @@
+<html>
+<meta charset="UTF-8">
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.1.0/dist/tf.min.js"></script>
+<script src="js_model/vocab.js"></script>
+<link rel="stylesheet" type="text/css" href="burger.css">
+<script>
+  const START_TITLE_CHAR = '\u0990'
+  const END_TITLE_CHAR = '\u0991'
+  const START_SECTION_CHAR = '\u0992'
+  const START_SUBTEXT_CHAR = '\u0993'
+  const START_ITEM_CHAR = '\u0994'
+  const START_PRICE_CHAR = '\u0995'
+  const START_DESCRIPTION_CHAR = '\u0996'
+  const END_CHAR = '\u0997'
+
+  const num2char = vocab
+  var tmp_char2num = {}
+  for (var i = 0; i < num2char.length; i++) {
+    tmp_char2num[num2char[i]] = i
+  }
+  const char2num = tmp_char2num
+
+  function convert_string_to_array(string) {
+    var arr = []
+    for (var i = 0; i < string.length; i++) {
+      arr.push(char2num[string[i]])
+    }
+    return arr
+  }
+
+  function convert_array_to_string(arr) {
+    var str = ""
+    for (var i = 0; i < arr.length; i++) {
+      str += num2char[arr[i]]
+    }
+    return str
+  }
+
+  function text_to_obj(string) {
+    // Create the dict to store the menu
+    menu = {}
+
+    // Parse the title start char, discard everything before
+    start_split = string.split(START_TITLE_CHAR)
+    if (start_split.length > 1) {
+      string = start_split[1]
+    }
+
+    // Parse the END_CHAR that delimits the end of the menu. Discard everything afterwards
+    end_split = string.split(END_CHAR)
+    if (end_split.length > 1) {
+      string = end_split[0]
+    }
+
+    // Find the END_TITLE_CHAR.
+    // - Everything before is the restaurant name
+    // - Everything afterwards is the menu sections
+    end_title_split = string.split(END_TITLE_CHAR)
+    name = end_title_split[0]
+    rest = end_title_split[1]
+    menu["name"] = name
+
+    // Parse each menu section that starts with the START_SECTION_CHAR
+    menu["sections"] = []
+    section_split = rest.split(START_SECTION_CHAR)
+    for (var i = 1; i < section_split.length; i++) {
+      section = section_split[i]
+      section_json = {}
+
+      // Split based on START_ITEM_CHAR
+      // Everything before the first start item char referrs to the section title/subtitle
+      items = section.split(START_ITEM_CHAR)
+      section_json['title'] = items[0].split(START_SUBTEXT_CHAR)[0]
+      if (items[0].includes(START_SUBTEXT_CHAR)) {
+        subtext_split = items[0].split(START_SUBTEXT_CHAR)
+        section_json['subtitle'] = subtext_split[subtext_split.length-1]
+      }
+
+      // Everything after the first START_ITEM_CHAR is a menu item
+      section_json["items"] = []
+      for (var j = 1; j < items.length; j++) {
+        item = items[j]
+        item_json = {}
+        // Split based on PRICE_CHAR, everything before is the item's title
+        price_split = item.split(START_PRICE_CHAR)
+        item_json["title"] = price_split[0]
+
+        // If the price char is not present, then set the price to nothing
+        if (price_split.length < 2) {
+          item_json["price"] =""
+        // Otherwise, if this item hasa description, make sure it doesnt appear in the price
+        } else {
+          item_json["price"] = price_split[1].split(START_DESCRIPTION_CHAR)[0]
+        }
+
+        // Populate the item description if its present
+        if (item.includes(START_DESCRIPTION_CHAR)) {
+          description_split = item.split(START_DESCRIPTION_CHAR)
+          item_json["description"] = description_split[description_split.length-1]
+        }
+        section_json["items"].push(item_json)
+      }
+      menu["sections"].push(section_json)
+    }
+    return menu
+  }
+
+  function build_progress_bar(chars, total_chars) {
+    var menu_node = document.getElementById("menu")
+    // If a progress bar isnt being rendered, delete whatever is in the menu so far and make a progress bar
+    if (menu_node.firstChild.id != "progress_bar") {
+      while(menu_node.firstChild) {
+        menu_node.removeChild(menu_node.firstChild)
+      }
+      progress = document.createElement("div")
+      progress.setAttribute("class", "progress_wrapper")
+      menu_node.appendChild(progress)
+
+      progress_back = document.createElement("div")
+      progress_back.setAttribute("class", "bar_back")
+      progress.appendChild(progress_back)
+
+      progress_front = document.createElement("div")
+      progress_front.setAttribute("class", "bar_front")
+      progress_back.appendChild(progress_front)
+
+      progress_text = document.createElement("div")
+      progress_text.setAttribute("class", "bar_text")
+      progress_front.appendChild(progress_text)
+    }
+
+    percent = Math.floor(100*chars / total_chars)
+    document.getElementsByClassName("bar_text")[0].textContent = percent + "% Complete (" + chars + "/" + total_chars + ")"
+    document.getElementsByClassName("bar_front")[0].style.width = percent + "%"
+  }
+
+  function build_menu(menu) {
+    // First, remove the existing menu
+    var menu_node = document.getElementById("menu")
+    while(menu_node.firstChild) {
+      menu_node.removeChild(menu_node.firstChild)
+    }
+
+    // Append the restaurant title + horizontal rule
+    var title_box = document.createElement("div")
+
+    var menu_title = document.createElement("h1")
+    menu_title.appendChild(document.createTextNode(menu["name"]))
+    //menu_node.appendChild(menu_title)
+    //menu_node.appendChild(document.createElement("hr"))
+
+    title_box.appendChild(menu_title)
+    title_box.appendChild(document.createElement("hr"))
+    menu_node.appendChild(title_box)
+
+    // Add each section
+    for (var i = 0; i < menu["sections"].length; i++) {
+      var section = menu["sections"][i]
+
+      // <div class="menu_section">
+      menu_section = document.createElement("div")
+      menu_section.setAttribute("class", "menu_section")
+      menu_node.appendChild(menu_section)
+
+      // <h2>Menu Section</h2>
+      menu_title = document.createElement("h2")
+      menu_title.appendChild(document.createTextNode(section["title"]))
+      menu_section.appendChild(menu_title)
+
+      // <div class="section_subtext">This is the subtext </div>
+      if ("subtitle" in section) {
+        menu_subtitle = document.createElement("div")
+        menu_subtitle.setAttribute("class", "section_subtext")
+        menu_subtitle.appendChild(document.createTextNode(section["subtitle"]))
+        menu_section.appendChild(menu_subtitle)
+      }
+
+      // <div class="section_container">
+      section_container = document.createElement("div")
+      section_container.setAttribute("class", "section_container")
+      menu_section.appendChild(section_container)
+
+      // Add all items to the menu
+      for (var j=0; j < section["items"].length; j++) {
+        item = section["items"][j]
+        //<div class="menu_item">
+        menu_item = document.createElement("div")
+        menu_item.setAttribute("class", "menu_item")
+        section_container.appendChild(menu_item)
+
+        //<table class="item_table">
+        item_table = document.createElement("table")
+        item_table.setAttribute("class", "item_table")
+        menu_item.appendChild(item_table)
+
+        //<tr>
+        item_table_row = document.createElement("tr")
+        item_table.appendChild(item_table_row)
+
+        //<td class="item_name">Item Name</td>
+        item_name = document.createElement("td")
+        item_name.setAttribute("class", "item_name")
+        item_name.appendChild(document.createTextNode(item["title"]))
+        item_table_row.appendChild(item_name)
+
+        //<td class="item_price">$5.00</td>
+        item_price = document.createElement("td")
+        item_price.setAttribute("class", "item_price")
+        item_price.appendChild(document.createTextNode(item["price"]))
+        item_table_row.appendChild(item_price)
+
+        //<hr/>
+        menu_item.appendChild(document.createElement("hr"))
+
+        //<p class="item_description">
+        if ("description" in item) {
+          item_desc = document.createElement("p")
+          item_desc.setAttribute("class", "item_description")
+          item_desc.appendChild(document.createTextNode(item["description"]))
+          menu_item.appendChild(item_desc)
+        }
+      }
+    }
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async function generate_text(model, name, menu_len) {
+    var arr = convert_string_to_array(START_TITLE_CHAR + name + END_TITLE_CHAR)
+    var arrTensor = tf.tensor(arr)
+    var input = tf.expandDims(arrTensor,0)
+    predictions = []
+
+    // Do the first prediction
+    prediction = tf.squeeze(model.predict(input, 1), 0)
+    data = tf.multinomial(prediction, 1).unstack()
+
+    input = tf.expandDims(data[data.length-1], 0)
+    predictions.push(input)
+
+    for (var i=0; i < menu_len; i++) {
+      if ((i%100)==0) {
+        build_progress_bar(i,menu_len)
+        await sleep(50)
+      }
+      input = tf.multinomial(tf.squeeze(model.predict(input, 1), 0),1)
+      predictions.push(input)
+    }
+
+    generated = tf.stack(predictions,2).arraySync()[0][0]
+    arr = arr.concat(generated)
+    var text = convert_array_to_string(arr)
+    return text
+  }
+
+  model = null;
+
+  const model_promise = tf.loadLayersModel("js_model/model.json", false)
+  model_promise.then(function(result){
+    model = result
+    document.getElementById("submit-button").disabled = false
+  })
+
+  function submitRestaurant() {
+    document.getElementById("submit-button").disabled = true
+
+    var name = document.getElementById("restaurant_name").value
+    var chars = document.getElementById("num_chars").value
+
+    text_promise = generate_text(model, name, chars);
+    text_promise.then(function(text){
+      var menu_obj = text_to_obj(text)
+      build_menu(menu_obj)
+      document.getElementById("submit-button").disabled = false
+    })
+  }
+
+
+</script>
+</head>
+<body>
+  <div>
+    <div class="submission_wrapper">
+      <label for="restaurant_name">Restaurant Name: </label>
+      <input type="text" id="restaurant_name" value="Type Restaurant Name Here!"/>
+      <br>
+      <label for="num_chars">Menu Size (500 - 5000): </label>
+      <input type="range" id="num_chars" name="num_chars" min="500" max="5000">
+      <br>
+      <input type="button" id="submit-button" value="Generate Menu!" onclick="submitRestaurant()" disabled="true">
+    </div>
+  </div>
+  <div id="menu">
+  </div>
+</body>
+</html>
