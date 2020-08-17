@@ -1,6 +1,7 @@
 <html>
 <meta charset="UTF-8">
 <head>
+<title>BurgerNET</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.1.0/dist/tf.min.js"></script>
 <script src="js_model/vocab.js"></script>
 <link rel="stylesheet" type="text/css" href="burger.css">
@@ -146,6 +147,7 @@
     var title_box = document.createElement("div")
 
     var menu_title = document.createElement("h1")
+    menu_title.setAttribute("class", "menu_title")
     menu_title.appendChild(document.createTextNode(menu["name"]))
     //menu_node.appendChild(menu_title)
     //menu_node.appendChild(document.createElement("hr"))
@@ -265,11 +267,22 @@
   })
 
   function submitRestaurant() {
+    // Disable the button so we dont get duplicate submissions
     document.getElementById("submit-button").disabled = true
 
+    // Verify the input is ok, otherwise, select defaults
     var name = document.getElementById("restaurant_name").value
-    var chars = document.getElementById("num_chars").value
+    var chars = parseInt(document.getElementById("num_chars").value, 10)
+    if (isNaN(chars)) {
+      chars = 2500
+    } else if (chars < 500) {
+      chars = 500
+    } else if (chars > 5000) {
+      chars = 5000
+    }
+    document.getElementById("num_chars").value = chars
 
+    // Launch asynchronous function to generate menu
     text_promise = generate_text(model, name, chars);
     text_promise.then(function(text){
       var menu_obj = text_to_obj(text)
@@ -284,12 +297,36 @@
 <body>
   <div>
     <div class="submission_wrapper">
-      <label for="restaurant_name">Restaurant Name: </label>
-      <input type="text" id="restaurant_name" value="Type Restaurant Name Here!"/>
-      <br>
-      <label for="num_chars">Menu Size (500 - 5000): </label>
-      <input type="range" id="num_chars" name="num_chars" min="500" max="5000">
-      <br>
+      <table>
+        <tr>
+          <td>
+            <h1 class="title">BurgerNET</h1>
+          </td>
+          <td>
+            <span class="title_subtext">AI generated restaurant menus</span>
+          </td>
+        </tr>
+      </table>
+      <p>BurgerNET is a recurrent neural network trained on over 27,000 restaurant menus ranging from fast food to fine dining. See the source code <a href="https://github.com/colter5991/BurgerNET">here</a></p>
+      <hr>
+      <table>
+        <tr>
+          <td>
+            <strong>Restaurant Name: </strong>
+          </td>
+          <td>
+            <input type="text" id="restaurant_name" value="Type Restaurant Name Here!"/>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <strong>Menu Size (Characters 500 - 5000): </strong>
+          </td>
+          <td>
+            <input type="text" id="num_chars" value="2500"/>
+          </td>
+        </tr>
+      </table>
       <input type="button" id="submit-button" value="Generate Menu!" onclick="submitRestaurant()" disabled="true">
     </div>
   </div>

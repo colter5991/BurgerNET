@@ -39,7 +39,7 @@ h2 {
   margin-top: 50px;
 }
 
-h1 {
+.menu_title {
   margin-top: 50px;
 }
 
@@ -91,7 +91,7 @@ h1 {
 }
 
 .item_price {
-  
+
 }
 
 .section_subtext {
@@ -99,6 +99,19 @@ h1 {
   margin-bottom:20px;
 }
 
+.title_subtext_wrapper {
+  position:relative;
+  width:100%;
+}
+
+.title_subtext {
+  color: #555;
+}
+
 .item_description {
   color: #555;
+}
+
+#submit-button {
+  font-size: 115%;
 }
