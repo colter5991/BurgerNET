@@ -20,7 +20,7 @@ A restaurant menu is composed of the following
         * A price
         * A description (Optional)
 
-Because the network operates on a sequence of symbols, a series of sepcial "delimiter" symbols are used to
+Because the network operates on a sequence of symbols, a series of special "delimiter" symbols are used to
 indicate the boundary between sections and items.
 
 ![symbols](docs/images/symbols.png)
@@ -69,6 +69,35 @@ The same menu is parsed and converted into the following string of symbols befor
 
 ![sample_menu](docs/images/sample_menu.png)
 
+## Dependencies
+
+**NOTE:** You must have the following software installed to train or run the network
+ - Docker
+ - Nvidia drivers
+ - Nvidia container runtime
+
+
+All other dependencies are contained in a docker image. To train/run the network, run the following command to
+build and start the docker image:
+```
+./env.sh
+```
+
+
 ## Training
 
-## Generating
+To train the network, first collect some restaurant menus, encode them according to the specified JSON format, and store
+them into a directory. The structure or naming of the files doesn't matter: The training script will recursively look for all
+files ending with `.json` in the training data directory.
+
+Inside the docker container started earlier, run the following command to train a new network for 20 epochs:
+```
+./burger.py --train <input_directory> --epochs 20
+```
+
+## Inferencing
+
+To generate a new restaurant menu using a trained network, run the following command inside the docker container started earlier:
+```
+/burger.py --generate <restaurant name>
+```
