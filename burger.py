@@ -13,15 +13,15 @@ import tensorflowjs as tfjs
 #"Title of restaurant"
 #"[END_TITLE]"
 #"[START_SECTION]"
-#"asdf"
+#"Section name"
 #"[START_SUBTEXT]"
-#"asdf"
+#"Section subtext"
 #"[START_ITEM]"
-#"HURRR"
+#"Item name"
 #"[START_PRICE]"
-#"PRICE"
+#"Item price"
 #"[START_DESCRIPTION]"
-#"DESCRIPTION"
+#"Item description"
 #"[END]"
 
 MAX_MENU_LENGTH = 20000
@@ -265,6 +265,7 @@ def build_model(vocab, batch_size=1):
   for layer in model.layers:
     print(layer.dtype)
 
+  print(model.summary())
   model.compile(loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True))
 
   return model
@@ -323,7 +324,9 @@ def train(input_dir, model_dir, epochs, force=False):
   model.save(model_dir + "/untrained.h5")
   inference_model.save(model_dir + "/inference_untrained.h5")
 
-  # Go ahead an train the model, saving checkpoints along the way
+  # Go ahead an train the model, saving checkpoints along the way)
+  if len(data) == 0:
+    raise ValueError("Not enough data for one batch, please train with more data or reduce the batch size!")
   model.fit(data, epochs=epochs, callbacks=[
     tf.keras.callbacks.ModelCheckpoint(
       filepath=(model_dir+ "/checkpoint_{epoch}"),

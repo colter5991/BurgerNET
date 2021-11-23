@@ -1,32 +1,3 @@
-# BurgerNET
-AI generated restaurant menus!
-
-
-## Network design
-
-BurgerNET is a simple LTSM based recurrent nerual network that processes and generates restaurant menus as a sequence of symbols.
-
-![arch](docs/images/arch.png)
-
-The size of the input / output vectors depends on the alphabet used in the training data.
-
-A restaurant menu is composed of the following
-* A title
-* One or more sections, each of which contains the following properties:
-    * A section title
-    * A section subtitle (optional)
-    * One or more items, each of which contains the following properties:
-        * A name
-        * A price
-        * A description (Optional)
-
-Because the network operates on a sequence of symbols, a series of sepcial "delimiter" symbols are used to
-indicate the boundary between sections and items.
-
-![symbols](docs/images/symbols.png)
-
-Below is a sample menu input for training, encoded in json
-```
 {
     "name": "Eric's Bar and Grill",
     "sections": [
@@ -63,12 +34,3 @@ Below is a sample menu input for training, encoded in json
         }
     ]
 }
-```
-
-The same menu is parsed and converted into the following string of symbols before being input into the network
-
-![sample_menu](docs/images/sample_menu.png)
-
-## Training
-
-## Generating
