@@ -1,5 +1,5 @@
 # BurgerNET
-AI generated restaurant menus!
+AI generated restaurant menus, [try it out here!](https://colter5991.github.io/BurgerNET/)
 
 
 ## Network design
