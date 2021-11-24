@@ -1,10 +1,15 @@
 # BurgerNET
-AI generated restaurant menus, [try it out here!](https://colter5991.github.io/BurgerNET/)
+AI generated restaurant menus, **[try it out here!](https://colter5991.github.io/BurgerNET/)**
 
+Have you ever wanted to buy pasta by the pitcher? What about trying something called "Chili Milk"? Here are some absolutely ~~bizarre~~ _delicious_ dishes dreamed up by AI:
+- **Large Pitcher Louis-Size Pasta** ($12.00): All flat pasta and spanish, fresh napa and aged in whole mushroom sauce topped with white wine served white wine sauce.
+- **Evil Roll** ($4.00 - $8.00): maizanito valley gourmet tangerine & citrus
+- **Fresh Chili Milk** ($3.00): _(no description)_
+- **Florida Cup (5)** ($10.99): Southern raw seatan's day cheese & premium fish & lemon capers
 
 ## Network design
 
-BurgerNET is a simple LTSM based recurrent nerual network that processes and generates restaurant menus as a sequence of symbols.
+BurgerNET is a simple LTSM based recurrent neural network that processes and generates restaurant menus as a sequence of symbols.
 
 ![arch](docs/images/arch.png)
 
